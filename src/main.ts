@@ -2,25 +2,41 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as basicAuth from 'express-basic-auth';
+import { ValidationPipe } from '@nestjs/common';
+// import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // const configService = app.get(ConfigService);
 
-  const authOptions = {
-    users: { 'chat-app': '798690' }, // Replace with your actual username and password
-    challenge: true, // Show login dialog
+  const users = {
+    [process.env.API_DOC_USER]: process.env.API_DOC_PASS,
   };
 
-  app.use('/api-docs', basicAuth(authOptions));
+  app.use(
+    '/api*',
+    basicAuth({
+      challenge: true,
+      users,
+      unauthorizedResponse: 'Unauthorized',
+    }),
+  );
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+
   const config = new DocumentBuilder()
     .setTitle('Chat-App')
     .setDescription(`API's for Chat-App `)
-    .setVersion('0.1')
-    .addTag('Chat-App')
+    .setVersion('1.0')
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  try {
+    const confgswagger = SwaggerModule.setup('api', app, document);
+    console.log(confgswagger);
+  } catch (err) {
+    console.log(err);
+  }
   await app.listen(3000);
 }
 bootstrap();

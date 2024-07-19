@@ -10,12 +10,18 @@ export class UsersService {
     return 'This action adds a new user';
   }
 
-  async findAll(): Promise<UserEntity> {
+  async findAll(): Promise<[UserEntity]> {
     const data = fs.readFileSync('../users.json', 'utf8');
     const users = JSON.parse(data);
     return users;
   }
 
+  async findUserByEmail(email: string) {
+    console.log(email);
+    const allUsers = await this.findAll();
+    console.log(allUsers);
+    return allUsers.find((ele) => ele.email === email);
+  }
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }

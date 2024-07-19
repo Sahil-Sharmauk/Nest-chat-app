@@ -3,13 +3,13 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as basicAuth from 'express-basic-auth';
 import { ValidationPipe } from '@nestjs/common';
-// import { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // const configService = app.get(ConfigService);
-
+  const configService = app.get(ConfigService);
   const users = {
-    [process.env.API_DOC_USER]: process.env.API_DOC_PASS,
+    [configService.get<string>('API_DOC_USER')]:
+      configService.get<string>('API_DOC_PASS'),
   };
 
   app.use(
@@ -31,12 +31,8 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  try {
-    const confgswagger = SwaggerModule.setup('api', app, document);
-    console.log(confgswagger);
-  } catch (err) {
-    console.log(err);
-  }
+  SwaggerModule.setup('api', app, document);
+
   await app.listen(3000);
 }
 bootstrap();
